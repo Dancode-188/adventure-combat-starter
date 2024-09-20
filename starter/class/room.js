@@ -52,15 +52,12 @@ class Room {
   }
 
   getItemByName(name) {
-
-    // Fill this in
-
+    return this.items.find(item => item.name.toLowerCase() === name.toLowerCase());
   }
 
   getEnemyByName(name) {
-
-    // Fill this in
-
+    return this.getEnemies().find(enemy => enemy.name.toLowerCase() === name.toLowerCase());
+  }
 }
 
 module.exports = {

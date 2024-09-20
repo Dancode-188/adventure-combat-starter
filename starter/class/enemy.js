@@ -3,7 +3,9 @@ const {Character} = require('./character');
 
 class Enemy extends Character {
   constructor(name, description, currentRoom) {
-    // Fill this in
+    super(name, description, currentRoom);
+    this.cooldown = 3000;
+    this.attackTarget = null;
   }
 
   setPlayer(player) {
@@ -12,11 +14,23 @@ class Enemy extends Character {
 
 
   randomMove() {
-    // Fill this in
+    const exits = this.currentRoom.getExits();
+    if (exits.length > 0){
+      const direction = exits[Math.floor(Math.random() * exits.length)];
+      const nextRoom = this.currentRoom.getRoomInDirection(direction);
+      this.currentRoom = nextRoom;
+      this.cooldown += 500;
+      this.alert(`${this.name} has moved to ${nextRoom.name}`)
+    }
   }
 
   takeSandwich() {
-    // Fill this in
+    const sandwich = this.currentRoom.getItemByName('sandwich');
+    if (sandwich) {
+      this.items.push(sandwich);
+      this.currentRoom.items = this.currentRoom.items.filter(item => item !== sandwich);
+      this.alert(`${this.name} has picked up a sandwich`);
+    }
   }
 
   // Print the alert only if player is standing in the same room
@@ -36,11 +50,20 @@ class Enemy extends Character {
   }
 
   attack() {
-    // Fill this in
+    if (this.attackTarget && this.attackTarget.currentRoom === this.currentRoom){
+      const damage = Math.floor(Math.random() * this.strength + 1);
+      this.attackTarget.applyDamage(damage);
+      this.cooldown += 3000;
+      this.alert(`${this.name} attacks ${this.player.name} for ${damage} damage`);
+    }
   }
 
   applyDamage(amount) {
-    // Fill this in
+    super.applyDamage(amount);
+    this.alert(`${this.name} takes ${amount} damage`);
+    if (this.player) {
+      this.attackTarget = this.player;
+    }
   }
 
 
@@ -51,7 +74,13 @@ class Enemy extends Character {
     } else if (this.cooldown > 0) {
       this.rest();
     } else {
-      this.scratchNose();
+      if (this.attackTarget && this.attackTarget.currentRoom === this.currentRoom){
+        this.attack();
+      } else {
+        const actions = [this.scratchNose.bind(this), this.randomMove.bind(this), this.takeSandwich.bind(this)];
+        const randomAction = actions[Math.floor(Math.random() * actions.length)];
+        randomAction();
+      }
       this.rest();
     }
 
